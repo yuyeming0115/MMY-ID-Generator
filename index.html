@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MMY-ID-Generator · 昆仑时装职业装 ID 对照器</title>
+<style>
+  :root{
+    --bg:#0f1117; --bg2:#161a24; --card:#1c2030; --card2:#232838;
+    --border:#2e3344; --border-soft:#262b3a;
+    --text:#e8e8ee; --text-dim:#9aa0ad; --text-faint:#646b7a;
+    --accent:#f5a623; --accent2:#ff7a3c; --accent-soft:#3a2f12;
+    --ok:#46c46a; --warn:#f0b429; --danger:#ef5350; --info:#54a6f5;
+    --info-soft:#10243a; --toast-bg:#2a2f3e;
+    --shadow:0 6px 22px rgba(0,0,0,.35);
+    --radius:12px;
+  }
+  [data-theme="light"]{
+    --bg:#eef1f6; --bg2:#f7f9fc; --card:#ffffff; --card2:#f1f4f9;
+    --border:#dde2ea; --border-soft:#e7ebf1;
+    --text:#1f2733; --text-dim:#687085; --text-faint:#9aa3b2;
+    --accent:#e08a00; --accent2:#f2732b; --accent-soft:#fdf1dc;
+    --ok:#2e9e54; --warn:#c98a00; --danger:#d8453f; --info:#2f7fd1;
+    --info-soft:#e7f1fb; --toast-bg:#2f3744;
+    --shadow:0 4px 16px rgba(20,30,50,.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif;
+    background:radial-gradient(1000px 520px at 85% -12%, rgba(245,166,35,.10) 0%, transparent 55%), var(--bg);
+    color:var(--text); line-height:1.6; padding:18px 18px 60px;
+  }
+  .wrap{max-width:1240px;margin:0 auto}
+
+  /* Header */
+  header{
+    display:flex;justify-content:space-between;align-items:center;gap:16px;
+    padding:16px 22px; background:linear-gradient(135deg,var(--bg2),var(--card));
+    border:1px solid var(--border); border-left:4px solid var(--accent);
+    border-radius:14px; margin-bottom:18px; flex-wrap:wrap;
+  }
+  header h1{font-size:24px;color:var(--accent);letter-spacing:1px;font-weight:800}
+  header h1 .dot{color:var(--accent2)}
+  .subtitle{color:var(--text-dim);font-size:13px;margin-top:2px}
+  .head-actions{display:flex;gap:8px;align-items:center}
+  .meta-tag{font-size:11px;color:var(--text-faint);padding:2px 8px;border:1px solid var(--border);border-radius:20px}
+
+  /* Buttons */
+  button{
+    font-family:inherit;font-size:13px;cursor:pointer;border-radius:8px;
+    padding:9px 16px;border:1px solid var(--border);background:var(--card);
+    color:var(--text);transition:.15s;white-space:nowrap;
+  }
+  button:hover{background:var(--card2);border-color:var(--accent)}
+  button.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#1a1205;font-weight:700}
+  button.primary:hover{filter:brightness(1.08)}
+  button.ghost{background:transparent}
+  button.danger{color:var(--danger);border-color:#3a2326}
+  button.danger:hover{background:#2a1719}
+  button.sm{padding:5px 10px;font-size:12px}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  input,select,textarea{
+    font-family:inherit;font-size:13px;color:var(--text);
+    background:var(--bg2);border:1px solid var(--border);border-radius:8px;
+    padding:9px 12px;outline:none;transition:.15s;width:100%;
+  }
+  input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(240,165,0,.12)}
+
+  /* Sections */
+  section.panel{
+    background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+    padding:18px 20px;box-shadow:var(--shadow);
+  }
+  .main-grid{
+    display:grid;grid-template-columns:minmax(320px,360px) 1fr;gap:18px;
+    align-items:start;margin-bottom:18px;
+  }
+  .col-left{display:flex;flex-direction:column;gap:18px;min-width:0}
+  .col-right{min-width:0}
+  @media(max-width:900px){.main-grid{grid-template-columns:1fr}}
+  section h2{font-size:15px;color:var(--accent);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  section h2 .idx{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:22px;height:22px;border-radius:6px;background:var(--accent-soft);
+    color:var(--accent);font-size:12px;font-weight:800;
+  }
+  .input-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .input-row input{flex:1;min-width:220px}
+  .hint{font-size:12px;color:var(--text-faint);margin-top:8px}
+
+  /* Parse result — 分段解码 */
+  .parse-box{
+    margin-top:14px;padding:14px;background:var(--bg2);border:1px solid var(--border);
+    border-radius:10px;
+  }
+  .parse-box .empty{color:var(--text-faint);display:block;padding:6px 2px}
+  .decode-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .decode-id{display:flex;align-items:stretch;gap:4px;flex-wrap:wrap;
+    font-family:ui-monospace,"Cascadia Code",Consolas,monospace}
+  .seg{
+    display:inline-flex;align-items:center;justify-content:center;
+    min-width:26px;padding:8px 9px;border-radius:8px;font-size:18px;font-weight:800;line-height:1;
+  }
+  .seg-prefix{background:var(--bg);color:var(--text-dim);border:1px solid var(--border)}
+  .seg-action{background:color-mix(in srgb,var(--info) 16%,transparent);color:var(--info)}
+  .seg-part{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}
+  .seg-suit{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}
+  .seg-serial{background:var(--bg);color:var(--text-dim);border:1px solid var(--border)}
+  .seg-appear{background:color-mix(in srgb,var(--accent2) 16%,transparent);color:var(--accent2)}
+  .decode-legend{display:flex;flex-wrap:wrap;gap:6px 8px;margin-top:12px;
+    border-top:1px dashed var(--border);padding-top:12px}
+  .lg{font-size:12px;color:var(--text-dim);background:var(--card);border:1px solid var(--border);
+    border-radius:7px;padding:3px 9px;display:inline-flex;align-items:center}
+  .lg b{color:var(--text);font-weight:700;margin-left:5px}
+  .lg .lead{width:3px;height:13px;border-radius:2px;display:inline-block;margin-right:6px}
+  .badge{display:inline-block;padding:3px 11px;border-radius:20px;font-size:12px;font-weight:700}
+  .badge.scheme9{background:var(--accent-soft);color:var(--accent)}
+  .badge.scheme8{background:var(--info-soft);color:var(--info)}
+
+  /* Derive — 六部位垂直一列 */
+  .card-grid{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+  .derive-card{
+    display:flex;align-items:center;gap:10px;min-width:0;
+    background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+    padding:9px 12px;transition:.15s;
+  }
+  .derive-card:hover{border-color:var(--accent)}
+  .derive-card.missing{opacity:.92;border-style:dashed}
+  .derive-card.current{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset;background:var(--accent-soft)}
+  .dc-part{flex:none;width:46px;font-size:12px;color:var(--text-dim);letter-spacing:.5px}
+  .dc-part .cur{display:block;font-size:10px;color:var(--accent);margin-top:1px;letter-spacing:0}
+  .dc-id{
+    flex:none;font-size:15px;font-weight:800;color:var(--accent);
+    font-family:ui-monospace,"Cascadia Code",Consolas,monospace;cursor:pointer;
+  }
+  .dc-name{flex:1;min-width:0;font-size:13px;color:var(--text);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dc-name.miss{color:var(--text-faint);font-style:italic}
+  .dc-status{flex:none;font-size:14px}
+  .dc-status.ok{color:var(--ok)} .dc-status.maybe{color:var(--warn)}
+
+  /* Relation list */
+  .rel-table{width:100%;border-collapse:collapse;margin-top:14px;font-size:13px}
+  .rel-table th,.rel-table td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--border-soft)}
+  .rel-table th{color:var(--text-dim);font-weight:600;font-size:12px}
+  .rel-table tr:hover td{background:var(--card2)}
+  .rel-table .id-cell{font-family:ui-monospace,Consolas,monospace;color:var(--accent);cursor:pointer}
+  .stat-ok{color:var(--ok)} .stat-maybe{color:var(--warn)}
+  .empty-state{color:var(--text-faint);font-size:13px;padding:18px 4px;text-align:center}
+
+  /* Mapping table */
+  .table-scroll{overflow-x:auto;margin-top:14px}
+  table.map-table{width:100%;border-collapse:collapse;font-size:13px;min-width:760px}
+  .map-table th,.map-table td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--border-soft);white-space:nowrap}
+  .map-table th{color:var(--text-dim);font-weight:600;font-size:12px;position:sticky;top:0;background:var(--card)}
+  .map-table tr:hover td{background:var(--card2)}
+  .map-table .id-cell{font-family:ui-monospace,Consolas,monospace;color:var(--accent);cursor:pointer}
+  .row-actions{display:flex;gap:6px}
+  .footer-row{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:12px;color:var(--text-dim)}
+
+  /* Modal */
+  .modal-mask{
+    position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);
+    display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:50;
+  }
+  .modal-mask.hidden{display:none}
+  .modal{
+    background:var(--card);border:1px solid var(--border);border-radius:14px;
+    width:100%;max-width:640px;padding:20px 22px;max-height:86vh;overflow:auto;
+    border-top:4px solid var(--accent);
+  }
+  .modal h3{font-size:16px;color:var(--accent);margin-bottom:14px}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:560px){.form-grid{grid-template-columns:1fr}}
+  .field label{display:block;font-size:12px;color:var(--text-dim);margin-bottom:4px}
+  .field.full{grid-column:1/-1}
+  .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+  .auto-row{display:flex;gap:8px;margin-bottom:14px;align-items:center}
+  .auto-row input{flex:1}
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--toast-bg);border:1px solid var(--accent);color:#f3f4f7;
+    padding:9px 18px;border-radius:24px;font-size:13px;z-index:60;
+    opacity:0;transition:.25s;pointer-events:none;
+  }
+  .toast.show{opacity:1;bottom:34px}
+
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .chip{font-size:11px;color:var(--text-dim);background:var(--bg2);border:1px solid var(--border);padding:3px 9px;border-radius:6px}
+  .chip b{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <h1>MMY-ID-Generator<span class="dot"> ·</span> 昆仑时装职业装 ID 对照器</h1>
+      <div class="subtitle">输入即出中文名 · 自动列出身体/头发/武器 · 关联套件 · 可迭代编辑</div>
+    </div>
+    <div class="head-actions">
+      <button id="btnTheme" class="ghost sm" title="切换深/浅主题">🌙 深色</button>
+      <span class="meta-tag" id="metaTag">v0.1.0</span>
+      <button id="btnImport">导入 JSON</button>
+      <button id="btnExport">导出 JSON</button>
+      <input type="file" id="fileInput" accept=".json,application/json" hidden>
+    </div>
+  </header>
+
+  <div class="main-grid">
+    <div class="col-left">
+    <!-- 区域1：主 ID 反查 -->
+    <section class="panel">
+    <h2><span class="idx">1</span>主 ID 反查（推导六部位候选）</h2>
+    <div class="input-row">
+      <input type="text" id="mainInput" placeholder="输入主 ID，如 501121001（9位基础外观）或 50112101（8位时装）" inputmode="numeric">
+      <button class="primary" id="btnQuery">查询</button>
+    </div>
+    <div id="parseResult" class="parse-box"><span class="empty">输入 ID 后显示解析结果与六部位候选卡片</span></div>
+    <div id="deriveGrid" class="card-grid"></div>
+  </section>
+
+  <!-- 区域2：关联查询 -->
+  <section class="panel">
+    <h2><span class="idx">2</span>任意 ID 关联查询（同套全部部位）</h2>
+    <div class="input-row">
+      <input type="text" id="relInput" placeholder="输入任意 ID，列出同 SetKey 的全部已知部位" inputmode="numeric">
+      <button class="primary" id="btnRelQuery">查询关联</button>
+    </div>
+    <div id="relResult"></div>
+  </section>
+    </div><!-- /col-left -->
+
+    <div class="col-right">
+    <!-- 区域3：映射表管理 -->
+    <section class="panel">
+    <h2><span class="idx">3</span>映射表管理</h2>
+    <div class="input-row">
+      <input type="text" id="searchInput" placeholder="按 ID 或中文名搜索">
+      <button class="primary" id="btnAdd">+ 新增记录</button>
+    </div>
+    <div class="chips" id="statChips"></div>
+    <div class="table-scroll">
+      <table class="map-table" id="mapTable">
+        <thead>
+          <tr>
+            <th>ID</th><th>中文名</th><th>部位</th><th>动作</th><th>角色/性别</th>
+            <th>套装</th><th>类型</th><th>提交</th><th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="mapBody"></tbody>
+      </table>
+    </div>
+    <div class="footer-row">
+      <span id="recordCount"></span>
+      <button class="ghost sm" id="btnReset">重置为示例数据</button>
+    </div>
+  </section>
+    </div><!-- /col-right -->
+  </div><!-- /main-grid -->
+
+<!-- Modal -->
+<div class="modal-mask hidden" id="modalMask">
+  <div class="modal">
+    <h3 id="modalTitle">新增记录</h3>
+    <div class="auto-row">
+      <input type="text" id="f_id" placeholder="ID（8或9位数字）" inputmode="numeric">
+      <button class="sm" id="btnAutoParse">从ID解析</button>
+    </div>
+    <div class="form-grid">
+      <div class="field full">
+        <label>中文名 name</label>
+        <input type="text" id="f_name" placeholder="如：昆仑剑侠(剑)">
+      </div>
+      <div class="field">
+        <label>部位 part</label>
+        <select id="f_part"></select>
+      </div>
+      <div class="field">
+        <label>动作 action</label>
+        <select id="f_action"></select>
+      </div>
+      <div class="field">
+        <label>套装 suit</label>
+        <input type="text" id="f_suit" placeholder="1-9">
+      </div>
+      <div class="field">
+        <label>编号 serial</label>
+        <input type="text" id="f_serial" placeholder="如 00 / 01">
+      </div>
+      <div class="field">
+        <label>外观id appearanceId（9位制）</label>
+        <input type="text" id="f_appearanceId" placeholder="1-6（8位制留空）">
+      </div>
+      <div class="field">
+        <label>角色 profession</label>
+        <input type="text" id="f_profession" placeholder="如 昆仑剑侠">
+      </div>
+      <div class="field">
+        <label>性别 gender（8位制）</label>
+        <select id="f_gender"></select>
+      </div>
+      <div class="field">
+        <label>类型 type</label>
+        <select id="f_type"><option>基础外观</option><option>时装</option></select>
+      </div>
+      <div class="field">
+        <label>提交状态 submitted</label>
+        <select id="f_submitted"><option value="✓">✓ 已提交</option><option value="❓">❓ 待确认</option></select>
+      </div>
+      <div class="field full">
+        <label>备注 note</label>
+        <input type="text" id="f_note" placeholder="可选">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="ghost" id="btnModalCancel">取消</button>
+      <button class="primary" id="btnModalSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+
+/* ===================== 常量 ===================== */
+const ACTION_MAP  = {0:'通用',1:'剑',2:'武器2',3:'扇',4:'琴',5:'双刀',6:'武器6'};
+const PART_MAP    = {1:'头发',2:'身体',3:'武器',4:'翅膀',5:'环绕',6:'足迹'};
+const PROFESSION_MAP = {1:'昆仑剑侠',2:'虬髯客',3:'逍遥仙',4:'月河郡主',5:'拓跋影',6:'娇俏精'};
+const STORAGE_KEY = 'mmy-id-data';
+
+/* 推导六部位顺序：身体优先展示 */
+const DERIVE_PARTS = [
+  {code:'2', name:'身体'},
+  {code:'1', name:'头发'},
+  {code:'3', name:'武器'},
+  {code:'4', name:'翅膀'},
+  {code:'5', name:'环绕'},
+  {code:'6', name:'足迹'},
+];
+
+/* ===================== 内联 DEMO_SEED ===================== */
+const DEMO_SEED = { meta:{app:"MMY-ID-Generator",version:"0.1.0",source:"SVN时装职业装提交记录",updated:"2026-08-20"}, records:[
+  {id:"501121001",name:"昆仑剑侠(剑)",part:"身体",action:"剑",suit:"1",serial:"00",appearanceId:"1",profession:"昆仑剑侠",type:"基础外观",submitted:"✓",note:""},
+  {id:"501111001",name:"昆仑剑侠(剑)头发",part:"头发",action:"剑",suit:"1",serial:"00",appearanceId:"1",profession:"昆仑剑侠",type:"基础外观",submitted:"✓",note:""},
+  {id:"501031001",name:"昆仑剑侠(剑)武器",part:"武器",action:"通用",suit:"1",serial:"00",appearanceId:"1",profession:"昆仑剑侠",type:"基础外观",submitted:"❓",note:""},
+  {id:"501211001",name:"昆仑剑侠(武器2)头发",part:"头发",action:"武器2",suit:"1",serial:"00",appearanceId:"1",profession:"昆仑剑侠",type:"基础外观",submitted:"❓",note:""},
+  {id:"501311001",name:"昆仑剑侠(扇)头发",part:"头发",action:"扇",suit:"1",serial:"00",appearanceId:"1",profession:"昆仑剑侠",type:"基础外观",submitted:"❓",note:""},
+  {id:"50112101",name:"天命男(剑)",part:"身体",action:"剑",suit:"1",serial:"01",profession:"昆仑剑侠",gender:"男",type:"时装",submitted:"✓",note:""},
+  {id:"50103101",name:"天命男(剑)武器",part:"武器",action:"通用",suit:"1",serial:"01",profession:"昆仑剑侠",gender:"男",type:"时装",submitted:"✓",note:""},
+  {id:"50122101",name:"天命男(武器2)",part:"身体",action:"武器2",suit:"1",serial:"01",profession:"昆仑剑侠",gender:"男",type:"时装",submitted:"✓",note:""},
+  {id:"50132101",name:"天命男(扇)",part:"身体",action:"扇",suit:"1",serial:"01",profession:"昆仑剑侠",gender:"男",type:"时装",submitted:"✓",note:""},
+  {id:"50142101",name:"天命男(琴)",part:"身体",action:"琴",suit:"1",serial:"01",profession:"昆仑剑侠",gender:"男",type:"时装",submitted:"✓",note:""},
+  {id:"50152101",name:"天命男(双刀)",part:"身体",action:"双刀",suit:"1",serial:"01",profession:"昆仑剑侠",gender:"男",type:"时装",submitted:"✓",note:""},
+  {id:"50162101",name:"天命男(武器6)",part:"身体",action:"武器6",suit:"1",serial:"01",profession:"昆仑剑侠",gender:"男",type:"时装",submitted:"✓",note:""}
+]};
+
+/* ===================== 核心逻辑 ===================== */
+
+// 1. parseID(id) → 解析对象
+function parseID(id){
+  if(id==null) return null;
+  id = String(id).replace(/\D/g,'');
+  const len = id.length;
+  if(len!==8 && len!==9) return null;
+
+  const prefix = id.substring(0,3);
+  const action = id[3];
+  const part   = id[4];
+  const suit   = id[5];
+  const serial = id.substring(6,8);
+
+  const actionName = ACTION_MAP[action] || '?';
+  const partName   = PART_MAP[part] || '?';
+
+  if(len===9){
+    const appearanceId = id[8];
+    const profession = PROFESSION_MAP[appearanceId] || '?';
+    return {raw:id, scheme:'基础外观', prefix, action, actionName, part, partName,
+            suit, serial, appearanceId, profession, gender:null};
+  } else {
+    let gender = '基础';
+    const sn = parseInt(serial,10);
+    if(sn>=1 && sn<=49) gender = '男';
+    else if(sn>=51 && sn<=99) gender = '女';
+    return {raw:id, scheme:'时装', prefix, action, actionName, part, partName,
+            suit, serial, appearanceId:null, profession:null, gender};
+  }
+}
+
+// 2. derive(targetPart, sourceId) → 候选ID
+function derive(targetPart, sourceId){
+  const p = parseID(sourceId);
+  if(!p) return null;
+  let newAction = p.action;
+  // 武器(3): 动作码→0(通用), 部位→3
+  if(String(targetPart)==='3') newAction = '0';
+  const newPart = String(targetPart);
+  let newId = '501' + newAction + newPart + p.suit + p.serial;
+  if(p.scheme==='基础外观') newId += p.appearanceId;
+  return newId;
+}
+
+// SetKey 提取
+function setKeyOf(parsed){
+  if(!parsed) return null;
+  if(parsed.scheme==='基础外观') return parsed.suit + parsed.serial + parsed.appearanceId;
+  return parsed.suit + parsed.serial;
+}
+
+// 3. groupBySetKey(records, inputId) → 关联ID列表（按部位排序）
+function groupBySetKey(records, inputId){
+  const p = parseID(inputId);
+  if(!p) return [];
+  const key = setKeyOf(p);
+  const out = [];
+  for(const r of records){
+    const rp = parseID(r.id);
+    if(!rp) continue;
+    if(setKeyOf(rp)===key) out.push({record:r, parsed:rp});
+  }
+  out.sort((a,b)=>{
+    const pa = a.parsed.part || '0';
+    const pb = b.parsed.part || '0';
+    if(pa!==pb) return pa.localeCompare(pb);
+    return (a.parsed.action||'').localeCompare(b.parsed.action||'');
+  });
+  return out;
+}
+
+/* ===================== 工具 ===================== */
+function findRecord(records, id){
+  return records.find(r => r.id===id);
+}
+function escapeHtml(s){
+  if(s==null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._tm); t._tm = setTimeout(()=>t.classList.remove('show'), 1600);
+}
+function copyText(txt){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>toast('已复制：'+txt)).catch(()=>fallbackCopy(txt));
+  } else fallbackCopy(txt);
+}
+function fallbackCopy(txt){
+  const ta = document.createElement('textarea');
+  ta.value = txt; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); toast('已复制：'+txt); }catch(e){ toast('复制失败'); }
+  document.body.removeChild(ta);
+}
+
+/* ===================== 数据存储 ===================== */
+let DATA = null;
+
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const obj = JSON.parse(raw);
+      if(obj && Array.isArray(obj.records)){ DATA = obj; return; }
+    }
+  }catch(e){ console.warn('localStorage 读取失败，回退 DEMO_SEED', e); }
+  DATA = JSON.parse(JSON.stringify(DEMO_SEED));
+}
+function saveData(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA, null, 2));
+  }catch(e){ console.warn('localStorage 保存失败', e); }
+}
+function records(){ return DATA.records; }
+
+/* ===================== 渲染：区域1 ===================== */
+function renderMain(){
+  const input = document.getElementById('mainInput').value.trim();
+  const parseEl = document.getElementById('parseResult');
+  const gridEl  = document.getElementById('deriveGrid');
+  gridEl.innerHTML = '';
+
+  if(!input){
+    parseEl.innerHTML = '<span class="empty">输入 ID 后显示解析结果与六部位候选卡片</span>';
+    return;
+  }
+  const p = parseID(input);
+  if(!p){
+    parseEl.innerHTML = '<span class="empty" style="color:var(--danger)">无法解析：ID 必须为 8 位（时装）或 9 位（基础外观）数字</span>';
+    return;
+  }
+
+  const schemeBadge = p.scheme==='基础外观'
+    ? '<span class="badge scheme9">基础外观 · 9 位制</span>'
+    : '<span class="badge scheme8">时装 · 8 位制</span>';
+
+  // 分段解码：把 ID 按语义切段着色，并给出带色点的图例
+  const segs = [
+    {cls:'seg-prefix', t:p.prefix, label:'前缀',   val:p.prefix},
+    {cls:'seg-action', t:p.action, label:'动作',   val:p.actionName},
+    {cls:'seg-part',   t:p.part,   label:'部位',   val:p.partName},
+    {cls:'seg-suit',   t:p.suit,   label:'套装',   val:p.suit},
+    {cls:'seg-serial', t:p.serial, label:'编号',   val:p.serial},
+  ];
+  if(p.scheme==='基础外观'){
+    segs.push({cls:'seg-appear', t:p.appearanceId, label:'外观id', val:p.appearanceId + (p.profession?(' · '+p.profession):'')});
+  }
+  const leadColor = {prefix:'var(--text-dim)', action:'var(--info)', part:'var(--accent)', suit:'var(--ok)', serial:'var(--text-dim)', appear:'var(--accent2)'};
+  const segHtml = segs.map(s=>`<span class="seg ${s.cls}" title="${escapeHtml(s.label)}">${escapeHtml(s.t)}</span>`).join('');
+  let legendHtml = segs.map(s=>`<span class="lg"><span class="lead" style="background:${leadColor[s.cls.replace('seg-','')]}"></span>${escapeHtml(s.label)}<b>${escapeHtml(s.val)}</b></span>`).join('');
+  if(p.scheme!=='基础外观'){
+    legendHtml += `<span class="lg"><span class="lead" style="background:var(--accent2)"></span>性别<b>${escapeHtml(p.gender)}</b></span>`;
+  }
+  parseEl.innerHTML =
+    `<div class="decode-head">${schemeBadge}</div>` +
+    `<div class="decode-id">${segHtml}</div>` +
+    `<div class="decode-legend">${legendHtml}</div>`;
+
+  // 六部位候选卡片
+  const recs = records();
+  for(const dp of DERIVE_PARTS){
+    const candId = derive(dp.code, input);
+    const rec = findRecord(recs, candId);
+    const isCurrent = (candId === p.raw);
+    const cls = ['derive-card'];
+    if(!rec) cls.push('missing');
+    if(isCurrent) cls.push('current');
+
+    const statusHtml = rec
+      ? (rec.submitted==='✓'
+          ? '<span class="dc-status ok" title="已提交">✓</span>'
+          : '<span class="dc-status maybe" title="待确认">❓</span>')
+      : '<span class="dc-status" style="color:var(--text-faint)">·</span>';
+    const nameHtml = rec
+      ? `<span class="dc-name">${escapeHtml(rec.name)}</span>`
+      : `<span class="dc-name miss">待补</span>`;
+    const curHtml = isCurrent ? '<span class="cur">当前</span>' : '';
+
+    gridEl.insertAdjacentHTML('beforeend',
+      `<div class="${cls.join(' ')}">
+        <span class="dc-part">${escapeHtml(dp.name)}${curHtml}</span>
+        <span class="dc-id" data-copy="${escapeHtml(candId)}">${escapeHtml(candId)}</span>
+        ${nameHtml}
+        ${statusHtml}
+      </div>`);
+  }
+}
+
+/* ===================== 渲染：区域2 ===================== */
+function renderRel(){
+  const input = document.getElementById('relInput').value.trim();
+  const el = document.getElementById('relResult');
+  if(!input){ el.innerHTML = '<div class="empty-state">输入任意 ID 后显示同套关联记录</div>'; return; }
+  const p = parseID(input);
+  if(!p){ el.innerHTML = '<div class="empty-state" style="color:var(--danger)">无法解析该 ID（需 8 或 9 位数字）</div>'; return; }
+
+  const key = setKeyOf(p);
+  const list = groupBySetKey(records(), input);
+
+  let head = `<div class="hint">SetKey = <b style="color:var(--accent)">${escapeHtml(key)}</b> · 方案：${escapeHtml(p.scheme)} · 命中 <b>${list.length}</b> 条</div>`;
+  if(list.length===0){
+    el.innerHTML = head + '<div class="empty-state">未找到同套记录</div>';
+    return;
+  }
+  let rows = list.map(item=>{
+    const r = item.record; const rp = item.parsed;
+    const statCls = r.submitted==='✓' ? 'stat-ok' : 'stat-maybe';
+    return `<tr>
+      <td class="id-cell" data-copy="${escapeHtml(r.id)}">${escapeHtml(r.id)}</td>
+      <td>${escapeHtml(r.name)}</td>
+      <td>${escapeHtml(rp.partName)}</td>
+      <td>${escapeHtml(rp.actionName)}</td>
+      <td class="${statCls}">${escapeHtml(r.submitted)}</td>
+    </tr>`;
+  }).join('');
+  el.innerHTML = head + `
+    <table class="rel-table">
+      <thead><tr><th>ID</th><th>中文名</th><th>部位</th><th>动作</th><th>提交</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+/* ===================== 渲染：区域3 ===================== */
+function renderTable(){
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const recs = records();
+  const filtered = recs.filter(r =>
+    !q || r.id.toLowerCase().includes(q) || (r.name||'').toLowerCase().includes(q)
+  );
+  const body = document.getElementById('mapBody');
+  if(filtered.length===0){
+    body.innerHTML = `<tr><td colspan="9" class="empty-state">无匹配记录</td></tr>`;
+  } else {
+    body.innerHTML = filtered.map(r=>{
+      const rp = parseID(r.id);
+      const role = rp && rp.scheme==='基础外观' ? (r.profession||rp.profession||'') : (r.gender||'');
+      const statCls = r.submitted==='✓' ? 'stat-ok' : 'stat-maybe';
+      return `<tr>
+        <td class="id-cell" data-copy="${escapeHtml(r.id)}">${escapeHtml(r.id)}</td>
+        <td>${escapeHtml(r.name)}</td>
+        <td>${escapeHtml(r.part||'')}</td>
+        <td>${escapeHtml(r.action||'')}</td>
+        <td>${escapeHtml(role)}</td>
+        <td>${escapeHtml(r.suit||'')}</td>
+        <td>${escapeHtml(r.type||'')}</td>
+        <td class="${statCls}">${escapeHtml(r.submitted||'')}</td>
+        <td><div class="row-actions">
+          <button class="sm" data-edit="${escapeHtml(r.id)}">编辑</button>
+          <button class="sm danger" data-del="${escapeHtml(r.id)}">删除</button>
+        </div></td>
+      </tr>`;
+    }).join('');
+  }
+  document.getElementById('recordCount').textContent =
+    `共 ${recs.length} 条记录${q?` · 过滤后 ${filtered.length} 条`:''}`;
+
+  // 统计 chips
+  const chips = document.getElementById('statChips');
+  const n9 = recs.filter(r=>String(r.id).length===9).length;
+  const n8 = recs.filter(r=>String(r.id).length===8).length;
+  const ok = recs.filter(r=>r.submitted==='✓').length;
+  chips.innerHTML = `
+    <span class="chip">基础外观(9位) <b>${n9}</b></span>
+    <span class="chip">时装(8位) <b>${n8}</b></span>
+    <span class="chip">已提交✓ <b>${ok}</b></span>
+    <span class="chip">待确认❓ <b>${recs.length-ok}</b></span>`;
+}
+
+/* ===================== 模态框（新增/编辑） ===================== */
+let editingId = null;
+
+function fillSelects(){
+  const partSel = document.getElementById('f_part');
+  partSel.innerHTML = Object.entries(PART_MAP).map(([k,v])=>`<option value="${v}">${v}</option>`).join('');
+  const actSel = document.getElementById('f_action');
+  actSel.innerHTML = Object.entries(ACTION_MAP).map(([k,v])=>`<option value="${v}">${v}</option>`).join('');
+  const gSel = document.getElementById('f_gender');
+  gSel.innerHTML = '<option value="">（9位制留空）</option><option>基础</option><option>男</option><option>女</option>';
+}
+function openModal(id){
+  editingId = id || null;
+  document.getElementById('modalTitle').textContent = id ? '编辑记录' : '新增记录';
+  const r = id ? findRecord(records(), id) : null;
+  document.getElementById('f_id').value           = r ? r.id : '';
+  document.getElementById('f_id').disabled         = !!r; // 编辑时锁定 ID（改 ID 视作删除+新增）
+  document.getElementById('f_name').value          = r ? (r.name||'') : '';
+  document.getElementById('f_part').value          = r ? (r.part||'') : '身体';
+  document.getElementById('f_action').value        = r ? (r.action||'') : '剑';
+  document.getElementById('f_suit').value          = r ? (r.suit||'') : '';
+  document.getElementById('f_serial').value         = r ? (r.serial||'') : '';
+  document.getElementById('f_appearanceId').value  = r ? (r.appearanceId||'') : '';
+  document.getElementById('f_profession').value   = r ? (r.profession||'') : '';
+  document.getElementById('f_gender').value        = r ? (r.gender||'') : '';
+  document.getElementById('f_type').value          = r ? (r.type||'基础外观') : '基础外观';
+  document.getElementById('f_submitted').value     = r ? (r.submitted||'✓') : '✓';
+  document.getElementById('f_note').value          = r ? (r.note||'') : '';
+  document.getElementById('modalMask').classList.remove('hidden');
+}
+function closeModal(){ document.getElementById('modalMask').classList.add('hidden'); }
+
+function autoParseForm(){
+  const id = document.getElementById('f_id').value.trim();
+  const p = parseID(id);
+  if(!p){ toast('无法解析 ID（需 8 或 9 位数字）'); return; }
+  document.getElementById('f_part').value         = p.partName;
+  document.getElementById('f_action').value       = p.actionName;
+  document.getElementById('f_suit').value          = p.suit;
+  document.getElementById('f_serial').value        = p.serial;
+  document.getElementById('f_type').value          = p.scheme;
+  if(p.scheme==='基础外观'){
+    document.getElementById('f_appearanceId').value = p.appearanceId;
+    document.getElementById('f_profession').value  = p.profession;
+    document.getElementById('f_gender').value      = '';
+  } else {
+    document.getElementById('f_appearanceId').value = '';
+    document.getElementById('f_gender').value       = p.gender;
+    if(!document.getElementById('f_profession').value)
+      document.getElementById('f_profession').value = '昆仑剑侠';
+  }
+  toast('已从 ID 解析填充');
+}
+
+function saveModal(){
+  const id = document.getElementById('f_id').value.trim();
+  if(!parseID(id)){ toast('ID 无效：需 8 或 9 位数字'); return; }
+  const rec = {
+    id,
+    name: document.getElementById('f_name').value.trim(),
+    part: document.getElementById('f_part').value,
+    action: document.getElementById('f_action').value,
+    suit: document.getElementById('f_suit').value.trim(),
+    serial: document.getElementById('f_serial').value.trim(),
+    appearanceId: document.getElementById('f_appearanceId').value.trim(),
+    profession: document.getElementById('f_profession').value.trim(),
+    gender: document.getElementById('f_gender').value,
+    type: document.getElementById('f_type').value,
+    submitted: document.getElementById('f_submitted').value,
+    note: document.getElementById('f_note').value.trim()
+  };
+
+  if(editingId){
+    const idx = records().findIndex(r=>r.id===editingId);
+    if(idx>=0){ records().splice(idx,1,rec); toast('已更新：'+id); }
+  } else {
+    if(findRecord(records(), id)){ toast('该 ID 已存在，请使用编辑'); return; }
+    records().push(rec); toast('已新增：'+id);
+  }
+  saveData();
+  closeModal();
+  renderTable();
+  // 若反查/关联输入框内含该 id，刷新视图
+  if(document.getElementById('mainInput').value.trim()===id) renderMain();
+  if(document.getElementById('relInput').value.trim()===id) renderRel();
+}
+
+function deleteRecord(id){
+  const r = findRecord(records(), id);
+  if(!r) return;
+  if(!confirm(`确认删除记录？\n${id} · ${r.name||''}`)) return;
+  DATA.records = records().filter(x=>x.id!==id);
+  saveData(); renderTable(); toast('已删除：'+id);
+}
+
+/* ===================== 导入/导出 ===================== */
+function exportData(){
+  const blob = new Blob([JSON.stringify(DATA, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'data.json';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  toast('已导出 data.json');
+}
+function importData(file){
+  const reader = new FileReader();
+  reader.onload = e=>{
+    try{
+      const obj = JSON.parse(e.target.result);
+      if(!obj || !Array.isArray(obj.records)) throw new Error('格式不符');
+      DATA = obj; saveData();
+      renderTable(); renderMain(); renderRel();
+      toast('导入成功：'+obj.records.length+' 条');
+    }catch(err){
+      alert('导入失败：'+err.message);
+    }
+  };
+  reader.onerror = ()=>alert('文件读取失败');
+  reader.readAsText(file, 'utf-8');
+}
+
+/* ===================== 事件绑定 ===================== */
+function bindEvents(){
+  document.getElementById('btnQuery').addEventListener('click', renderMain);
+  document.getElementById('mainInput').addEventListener('keydown', e=>{ if(e.key==='Enter') renderMain(); });
+
+  document.getElementById('btnRelQuery').addEventListener('click', renderRel);
+  document.getElementById('relInput').addEventListener('keydown', e=>{ if(e.key==='Enter') renderRel(); });
+
+  document.getElementById('searchInput').addEventListener('input', renderTable);
+
+  document.getElementById('btnAdd').addEventListener('click', ()=>openModal(null));
+  document.getElementById('btnModalCancel').addEventListener('click', closeModal);
+  document.getElementById('btnModalSave').addEventListener('click', saveModal);
+  document.getElementById('btnAutoParse').addEventListener('click', autoParseForm);
+  document.getElementById('modalMask').addEventListener('click', e=>{ if(e.target.id==='modalMask') closeModal(); });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
+
+  // 表格内编辑/删除（事件委托）
+  document.getElementById('mapBody').addEventListener('click', e=>{
+    const ed = e.target.getAttribute && e.target.getAttribute('data-edit');
+    const dl = e.target.getAttribute && e.target.getAttribute('data-del');
+    if(ed) openModal(ed);
+    if(dl) deleteRecord(dl);
+  });
+
+  // 点击 ID 复制（事件委托，覆盖三区域）
+  document.body.addEventListener('click', e=>{
+    const t = e.target.closest('[data-copy]');
+    if(t){ copyText(t.getAttribute('data-copy')); }
+  });
+
+  document.getElementById('btnExport').addEventListener('click', exportData);
+  document.getElementById('btnTheme').addEventListener('click', toggleTheme);
+  document.getElementById('btnImport').addEventListener('click', ()=>document.getElementById('fileInput').click());
+  document.getElementById('fileInput').addEventListener('change', e=>{
+    if(e.target.files[0]) importData(e.target.files[0]);
+    e.target.value = '';
+  });
+
+  document.getElementById('btnReset').addEventListener('click', ()=>{
+    if(!confirm('重置为示例数据？当前本地数据将被覆盖。')) return;
+    DATA = JSON.parse(JSON.stringify(DEMO_SEED));
+    saveData(); renderTable(); renderMain(); renderRel();
+    toast('已重置为示例数据');
+  });
+}
+
+/* ===================== 主题切换 ===================== */
+function updateThemeBtn(){
+  const isLight = document.documentElement.dataset.theme==='light';
+  const b = document.getElementById('btnTheme');
+  if(b) b.textContent = isLight ? '☀️ 浅色' : '🌙 深色';
+}
+function toggleTheme(){
+  const next = document.documentElement.dataset.theme==='light' ? 'dark' : 'light';
+  document.documentElement.dataset.theme = next;
+  try{ localStorage.setItem('mmy-theme', next); }catch(e){}
+  updateThemeBtn();
+}
+
+/* ===================== 初始化 ===================== */
+function init(){
+  fillSelects();
+  loadData();
+  // 顶部 meta
+  const m = DATA.meta || {};
+  document.getElementById('metaTag').textContent =
+    (m.version?('v'+m.version+' · '):'') + records().length+' 条';
+  bindEvents();
+  // 恢复主题偏好
+  let savedTheme = 'dark';
+  try{ savedTheme = localStorage.getItem('mmy-theme') || 'dark'; }catch(e){}
+  document.documentElement.dataset.theme = savedTheme;
+  updateThemeBtn();
+  renderTable();
+  // 预填主 ID 反查示例，首屏即可用
+  document.getElementById('mainInput').value = '501121001';
+  renderMain();
+}
+init();
+</script>
+</body>
+</html>

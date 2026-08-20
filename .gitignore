@@ -1,0 +1,7 @@
+# AI 工具 / IDE 本地文件
+.trae/
+.workbuddy/
+
+# 系统文件
+Thumbs.db
+.DS_Store
