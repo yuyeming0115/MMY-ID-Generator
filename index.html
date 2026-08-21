@@ -105,27 +105,33 @@
   .parse-box .empty a.sample-link:hover{filter:brightness(1.2)}
   .empty-state a.sample-link{color:var(--accent);text-decoration:underline;cursor:pointer;font-weight:600}
   .decode-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
-  /* #1 逐位对齐解码：上=数字段 / 中=位名 / 下=解码值（按策划公式对应） */
+  /* #1 逐位对齐解码：每列独立卡片，上=数字段 / 中=位名 / 下=解码值 */
   .decode-grid{
-    display:grid;grid-auto-flow:column;grid-auto-columns:minmax(40px,auto);
-    gap:8px;justify-content:start;align-items:start;
-    font-family:ui-monospace,"Cascadia Code",Consolas,monospace;
-    padding-bottom:8px;border-bottom:1px dashed var(--border);
+    display:grid;grid-auto-flow:column;grid-auto-columns:1fr;
+    gap:10px;width:100%;align-items:stretch;
+    padding-bottom:12px;border-bottom:1px dashed var(--border);
   }
-  .dcol{display:flex;flex-direction:column;gap:4px;align-items:center;min-width:0}
-  .dcol .seg{width:100%}
+  .dcol{
+    display:flex;flex-direction:column;gap:5px;align-items:center;justify-content:flex-start;
+    min-width:0;background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+    padding:9px 5px;
+  }
+  .dcol .seg{width:auto;min-width:34px}
   .dlabel{font-size:11px;color:var(--text-faint);text-align:center;white-space:nowrap;letter-spacing:.5px}
-  .dval{font-size:12px;color:var(--text);text-align:center;font-weight:700;white-space:nowrap;line-height:1.25}
+  .dval{font-size:12px;color:var(--text);text-align:center;font-weight:700;line-height:1.35}
+  .dval-code{font-weight:800}
+  .dval-extra{font-size:11px;color:var(--text-dim);font-weight:500;margin-top:2px}
   .seg{
     display:inline-flex;align-items:center;justify-content:center;
-    min-width:26px;padding:8px 9px;border-radius:8px;font-size:18px;font-weight:800;line-height:1;
+    min-width:30px;padding:8px 10px;border-radius:8px;font-size:18px;font-weight:800;line-height:1;
+    border:1px solid transparent;
   }
-  .seg-prefix{background:var(--bg);color:var(--text-dim);border:1px solid var(--border)}
-  .seg-action{background:color-mix(in srgb,var(--info) 16%,transparent);color:var(--info)}
-  .seg-part{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}
-  .seg-suit{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}
-  .seg-serial{background:var(--bg);color:var(--text-dim);border:1px solid var(--border)}
-  .seg-appear{background:color-mix(in srgb,var(--vio) 16%,transparent);color:var(--vio)}
+  .seg-prefix{background:var(--bg);color:var(--text-dim);border-color:var(--border)}
+  .seg-action{background:color-mix(in srgb,var(--info) 18%,transparent);color:var(--info);border-color:color-mix(in srgb,var(--info) 35%,transparent)}
+  .seg-part{background:color-mix(in srgb,var(--accent) 20%,transparent);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
+  .seg-suit{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok);border-color:color-mix(in srgb,var(--ok) 35%,transparent)}
+  .seg-serial{background:var(--bg);color:var(--text-dim);border-color:var(--border)}
+  .seg-appear{background:color-mix(in srgb,var(--vio) 20%,transparent);color:var(--vio);border-color:color-mix(in srgb,var(--vio) 45%,transparent)}
   .badge{display:inline-block;padding:3px 11px;border-radius:20px;font-size:12px;font-weight:700}
   .badge.scheme9{background:var(--accent-soft);color:var(--accent)}
   .badge.scheme8{background:var(--info-soft);color:var(--info)}
@@ -541,23 +547,25 @@ function renderMain(){
     ? `<span class="badge" style="background:color-mix(in srgb,var(--accent2) 16%,transparent);color:var(--accent2)">性别：${escapeHtml(p.gender)}</span>`
     : '';
 
-  // #1 逐位对齐解码：上=数字段 / 中=位名 / 下=解码值（按策划公式 前缀·动作·部位·套装·编号·外观id 对齐）
+  // #1 逐位对齐解码：每列独立卡片；上=数字段 / 中=位名 / 下=解码值（main+sub 分行，避免连字漂浮）
   const segDef = [
-    {cls:'seg-prefix', t:p.prefix, label:'前缀',   val:p.prefix},
-    {cls:'seg-action', t:p.action, label:'动作',   val:p.actionName},
-    {cls:'seg-part',   t:p.part,   label:'部位',   val:p.partName},
-    {cls:'seg-suit',   t:p.suit,   label:'套装',   val:p.suit},
-    {cls:'seg-serial', t:p.serial, label:'编号',   val:p.serial},
+    {cls:'seg-prefix', t:p.prefix, label:'前缀',   main:p.prefix, sub:''},
+    {cls:'seg-action', t:p.action, label:'动作',   main:p.action, sub:p.actionName},
+    {cls:'seg-part',   t:p.part,   label:'部位',   main:p.part,   sub:p.partName},
+    {cls:'seg-suit',   t:p.suit,   label:'套装',   main:p.suit,   sub:''},
+    {cls:'seg-serial', t:p.serial, label:'编号',   main:p.serial, sub:''},
   ];
   if(p.scheme==='基础外观'){
-    segDef.push({cls:'seg-appear', t:p.appearanceId, label:'外观id', val:p.appearanceId + (p.profession?(' · '+p.profession):'')});
+    segDef.push({cls:'seg-appear', t:p.appearanceId, label:'外观id', main:p.appearanceId, sub:p.profession||''});
   }
-  const cols = segDef.map(s=>
-    `<div class="dcol">
+  const cols = segDef.map(s=>{
+    const sub = s.sub ? `<div class="dval-extra">${escapeHtml(s.sub)}</div>` : '';
+    return `<div class="dcol">
       <div class="seg ${s.cls}">${escapeHtml(s.t)}</div>
       <div class="dlabel">${escapeHtml(s.label)}</div>
-      <div class="dval">${escapeHtml(s.val)}</div>
-    </div>`).join('');
+      <div class="dval"><div class="dval-code">${escapeHtml(s.main)}</div>${sub}</div>
+    </div>`;
+  }).join('');
   parseEl.innerHTML =
     `<div class="decode-head">${schemeBadge}${genderBadge}</div>` +
     `<div class="decode-grid">${cols}</div>`;
