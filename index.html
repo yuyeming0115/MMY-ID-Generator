@@ -6,29 +6,31 @@
 <title>MMY-ID-Generator · 昆仑时装职业装 ID 对照器</title>
 <style>
   :root{
-    --bg:#0f1117; --bg2:#161a24; --card:#1c2030; --card2:#232838;
-    --border:#2e3344; --border-soft:#262b3a;
-    --text:#e8e8ee; --text-dim:#9aa0ad; --text-faint:#646b7a;
-    --accent:#f5a623; --accent2:#ff7a3c; --accent-soft:#3a2f12;
-    --ok:#46c46a; --warn:#f0b429; --danger:#ef5350; --info:#54a6f5;
-    --info-soft:#10243a; --toast-bg:#2a2f3e;
-    --shadow:0 6px 22px rgba(0,0,0,.35);
+    --bg:#0d1117; --bg2:#12181f; --card:#161d26; --card2:#1c242f;
+    --border:#28323f; --border-soft:#202a35;
+    --text:#e9eef4; --text-dim:#9aa7b5; --text-faint:#68737f;
+    --accent:#d4a857; --accent2:#e8bd6a;
+    --accent-soft:rgba(212,168,87,.16);
+    --ok:#48c08b; --warn:#e08a2e; --danger:#e06a5a; --info:#5fa8e8;
+    --info-soft:rgba(95,168,232,.16); --vio:#b08ff0; --toast-bg:#232b34;
+    --shadow:0 8px 24px rgba(0,0,0,.40);
     --radius:12px;
   }
   [data-theme="light"]{
-    --bg:#eef1f6; --bg2:#f7f9fc; --card:#ffffff; --card2:#f1f4f9;
-    --border:#dde2ea; --border-soft:#e7ebf1;
-    --text:#1f2733; --text-dim:#687085; --text-faint:#9aa3b2;
-    --accent:#e08a00; --accent2:#f2732b; --accent-soft:#fdf1dc;
-    --ok:#2e9e54; --warn:#c98a00; --danger:#d8453f; --info:#2f7fd1;
-    --info-soft:#e7f1fb; --toast-bg:#2f3744;
-    --shadow:0 4px 16px rgba(20,30,50,.10);
+    --bg:#f6f5f1; --bg2:#fbfaf7; --card:#ffffff; --card2:#f3f1ea;
+    --border:#e4e0d6; --border-soft:#eceae2;
+    --text:#262a31; --text-dim:#6d7480; --text-faint:#a0a6ae;
+    --accent:#b8892f; --accent2:#cfa64a;
+    --accent-soft:rgba(184,137,47,.14);
+    --ok:#2f9e6b; --warn:#bd6a12; --danger:#c8553f; --info:#3d7fd0;
+    --info-soft:rgba(61,127,208,.12); --vio:#8a63d8; --toast-bg:#2a2f36;
+    --shadow:0 6px 18px rgba(45,45,55,.08);
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
   body{
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif;
-    background:radial-gradient(1000px 520px at 85% -12%, rgba(245,166,35,.10) 0%, transparent 55%), var(--bg);
+    background:radial-gradient(1000px 520px at 85% -12%, rgba(212,168,87,.10) 0%, transparent 55%), var(--bg);
     color:var(--text); line-height:1.6; padding:18px 18px 60px;
   }
   .wrap{max-width:1240px;margin:0 auto}
@@ -43,7 +45,9 @@
   header h1{font-size:24px;color:var(--accent);letter-spacing:1px;font-weight:800}
   header h1 .dot{color:var(--accent2)}
   .subtitle{color:var(--text-dim);font-size:13px;margin-top:2px}
-  .head-actions{display:flex;gap:8px;align-items:center}
+  .head-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .auto-backup{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--text-dim);cursor:pointer;user-select:none}
+  .auto-backup input{width:auto;accent-color:var(--accent)}
   .meta-tag{font-size:11px;color:var(--text-faint);padding:2px 8px;border:1px solid var(--border);border-radius:20px}
 
   /* Buttons */
@@ -97,25 +101,37 @@
     border-radius:10px;
   }
   .parse-box .empty{color:var(--text-faint);display:block;padding:6px 2px}
+  .parse-box .empty a.sample-link{color:var(--accent);text-decoration:underline;cursor:pointer;font-weight:600}
+  .parse-box .empty a.sample-link:hover{filter:brightness(1.2)}
+  .empty-state a.sample-link{color:var(--accent);text-decoration:underline;cursor:pointer;font-weight:600}
   .decode-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
-  .decode-id{display:flex;align-items:stretch;gap:4px;flex-wrap:wrap;
-    font-family:ui-monospace,"Cascadia Code",Consolas,monospace}
+  /* #1 逐位对齐解码：每列独立卡片，上=数字段 / 中=位名 / 下=解码值 */
+  .decode-grid{
+    display:grid;grid-auto-flow:column;grid-auto-columns:1fr;
+    gap:10px;width:100%;align-items:stretch;
+    padding-bottom:12px;border-bottom:1px dashed var(--border);
+  }
+  .dcol{
+    display:flex;flex-direction:column;gap:5px;align-items:center;justify-content:flex-start;
+    min-width:0;background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+    padding:9px 5px;
+  }
+  .dcol .seg{width:auto;min-width:34px}
+  .dlabel{font-size:11px;color:var(--text-faint);text-align:center;white-space:nowrap;letter-spacing:.5px}
+  .dval{font-size:12px;color:var(--text);text-align:center;font-weight:700;line-height:1.35}
+  .dval-code{font-weight:800}
+  .dval-extra{font-size:11px;color:var(--text-dim);font-weight:500;margin-top:2px}
   .seg{
     display:inline-flex;align-items:center;justify-content:center;
-    min-width:26px;padding:8px 9px;border-radius:8px;font-size:18px;font-weight:800;line-height:1;
+    min-width:30px;padding:8px 10px;border-radius:8px;font-size:18px;font-weight:800;line-height:1;
+    border:1px solid transparent;
   }
-  .seg-prefix{background:var(--bg);color:var(--text-dim);border:1px solid var(--border)}
-  .seg-action{background:color-mix(in srgb,var(--info) 16%,transparent);color:var(--info)}
-  .seg-part{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}
-  .seg-suit{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}
-  .seg-serial{background:var(--bg);color:var(--text-dim);border:1px solid var(--border)}
-  .seg-appear{background:color-mix(in srgb,var(--accent2) 16%,transparent);color:var(--accent2)}
-  .decode-legend{display:flex;flex-wrap:wrap;gap:6px 8px;margin-top:12px;
-    border-top:1px dashed var(--border);padding-top:12px}
-  .lg{font-size:12px;color:var(--text-dim);background:var(--card);border:1px solid var(--border);
-    border-radius:7px;padding:3px 9px;display:inline-flex;align-items:center}
-  .lg b{color:var(--text);font-weight:700;margin-left:5px}
-  .lg .lead{width:3px;height:13px;border-radius:2px;display:inline-block;margin-right:6px}
+  .seg-prefix{background:var(--bg);color:var(--text-dim);border-color:var(--border)}
+  .seg-action{background:color-mix(in srgb,var(--info) 18%,transparent);color:var(--info);border-color:color-mix(in srgb,var(--info) 35%,transparent)}
+  .seg-part{background:color-mix(in srgb,var(--accent) 20%,transparent);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
+  .seg-suit{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok);border-color:color-mix(in srgb,var(--ok) 35%,transparent)}
+  .seg-serial{background:var(--bg);color:var(--text-dim);border-color:var(--border)}
+  .seg-appear{background:color-mix(in srgb,var(--vio) 20%,transparent);color:var(--vio);border-color:color-mix(in srgb,var(--vio) 45%,transparent)}
   .badge{display:inline-block;padding:3px 11px;border-radius:20px;font-size:12px;font-weight:700}
   .badge.scheme9{background:var(--accent-soft);color:var(--accent)}
   .badge.scheme8{background:var(--info-soft);color:var(--info)}
@@ -136,9 +152,16 @@
     flex:none;font-size:15px;font-weight:800;color:var(--accent);
     font-family:ui-monospace,"Cascadia Code",Consolas,monospace;cursor:pointer;
   }
+  .dc-hl{color:var(--info);font-weight:900}   /* #2 部件位高亮 */
   .dc-name{flex:1;min-width:0;font-size:13px;color:var(--text);
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .dc-name.miss{color:var(--text-faint);font-style:italic}
+  /* #3 中文名行内编辑 */
+  .dc-name.editable{cursor:text;border-radius:5px;padding:1px 5px;outline:none;transition:.12s}
+  .dc-name.editable:hover{background:var(--bg)}
+  .dc-name.editable:focus{background:var(--bg);box-shadow:0 0 0 1px var(--accent);color:var(--text)}
+  .dc-name.miss.editable:empty::before{content:'待补';color:var(--text-faint);font-style:italic}
+  .dc-name.miss.editable:not(:empty){color:var(--text);font-style:normal}
   .dc-status{flex:none;font-size:14px}
   .dc-status.ok{color:var(--ok)} .dc-status.maybe{color:var(--warn)}
 
@@ -152,7 +175,7 @@
   .empty-state{color:var(--text-faint);font-size:13px;padding:18px 4px;text-align:center}
 
   /* Mapping table */
-  .table-scroll{overflow-x:auto;margin-top:14px}
+  .table-scroll{overflow:auto;margin-top:14px;max-height:62vh;border:1px solid var(--border-soft);border-radius:10px}
   table.map-table{width:100%;border-collapse:collapse;font-size:13px;min-width:760px}
   .map-table th,.map-table td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--border-soft);white-space:nowrap}
   .map-table th{color:var(--text-dim);font-weight:600;font-size:12px;position:sticky;top:0;background:var(--card)}
@@ -191,6 +214,11 @@
   .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
   .chip{font-size:11px;color:var(--text-dim);background:var(--bg2);border:1px solid var(--border);padding:3px 9px;border-radius:6px}
   .chip b{color:var(--accent)}
+  .progress-wrap{margin-top:12px}
+  .progress-meta{display:flex;justify-content:space-between;font-size:12px;color:var(--text-dim);margin-bottom:5px}
+  .progress-meta b{color:var(--ok)}
+  .progress{height:8px;background:var(--bg2);border:1px solid var(--border);border-radius:20px;overflow:hidden}
+  .progress-bar{height:100%;background:linear-gradient(90deg,var(--ok),var(--accent));border-radius:20px;transition:width .3s}
 </style>
 </head>
 <body>
@@ -203,6 +231,7 @@
     </div>
     <div class="head-actions">
       <button id="btnTheme" class="ghost sm" title="切换深/浅主题">🌙 深色</button>
+      <label class="auto-backup" title="开启后每次改动自动下载带日期的备份文件"><input type="checkbox" id="autoBackup"> 自动备份</label>
       <span class="meta-tag" id="metaTag">v0.1.0</span>
       <button id="btnImport">导入 JSON</button>
       <button id="btnExport">导出 JSON</button>
@@ -223,13 +252,10 @@
     <div id="deriveGrid" class="card-grid"></div>
   </section>
 
-  <!-- 区域2：关联查询 -->
+  <!-- 区域2：关联查询（随主ID反查智能联动） -->
   <section class="panel">
-    <h2><span class="idx">2</span>任意 ID 关联查询（同套全部部位）</h2>
-    <div class="input-row">
-      <input type="text" id="relInput" placeholder="输入任意 ID，列出同 SetKey 的全部已知部位" inputmode="numeric">
-      <button class="primary" id="btnRelQuery">查询关联</button>
-    </div>
+    <h2><span class="idx">2</span>关联查询（同 SetKey 全部部位）</h2>
+    <div class="hint">输入主 ID 后自动联动显示同套关联记录；下方 ID 可点击回填主ID反查</div>
     <div id="relResult"></div>
   </section>
     </div><!-- /col-left -->
@@ -243,6 +269,10 @@
       <button class="primary" id="btnAdd">+ 新增记录</button>
     </div>
     <div class="chips" id="statChips"></div>
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-meta"><span>提交进度（SVN 补录）</span><b>0</b></div>
+      <div class="progress"><div class="progress-bar" style="width:0%"></div></div>
+    </div>
     <div class="table-scroll">
       <table class="map-table" id="mapTable">
         <thead>
@@ -461,13 +491,15 @@ function fallbackCopy(txt){
 
 /* ===================== 数据存储 ===================== */
 let DATA = null;
+let autoBackup = false;
+let loadedFromStorage = false;
 
 function loadData(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
     if(raw){
       const obj = JSON.parse(raw);
-      if(obj && Array.isArray(obj.records)){ DATA = obj; return; }
+      if(obj && Array.isArray(obj.records)){ DATA = obj; loadedFromStorage = true; return; }
     }
   }catch(e){ console.warn('localStorage 读取失败，回退 DEMO_SEED', e); }
   DATA = JSON.parse(JSON.stringify(DEMO_SEED));
@@ -476,6 +508,17 @@ function saveData(){
   try{
     localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA, null, 2));
   }catch(e){ console.warn('localStorage 保存失败', e); }
+  if(autoBackup){ downloadBackup(); }
+}
+function downloadBackup(){
+  const d = new Date();
+  const ts = `${d.getFullYear()}${pad2(d.getMonth()+1)}${pad2(d.getDate())}_${pad2(d.getHours())}${pad2(d.getMinutes())}`;
+  const blob = new Blob([JSON.stringify(DATA, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `data_backup_${ts}.json`;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
 }
 function records(){ return DATA.records; }
 
@@ -487,7 +530,7 @@ function renderMain(){
   gridEl.innerHTML = '';
 
   if(!input){
-    parseEl.innerHTML = '<span class="empty">输入 ID 后显示解析结果与六部位候选卡片</span>';
+    parseEl.innerHTML = '<span class="empty">输入 ID 后显示解析结果与六部位候选卡片 · 试试 <a href="javascript:void(0)" class="sample-link" data-fill="501121001">501121001</a> 或 <a href="javascript:void(0)" class="sample-link" data-fill="50112101">50112101</a></span>';
     return;
   }
   const p = parseID(input);
@@ -499,31 +542,37 @@ function renderMain(){
   const schemeBadge = p.scheme==='基础外观'
     ? '<span class="badge scheme9">基础外观 · 9 位制</span>'
     : '<span class="badge scheme8">时装 · 8 位制</span>';
+  // 时装制式附带性别提示（性别不占 ID 位）
+  const genderBadge = p.scheme==='时装'
+    ? `<span class="badge" style="background:color-mix(in srgb,var(--accent2) 16%,transparent);color:var(--accent2)">性别：${escapeHtml(p.gender)}</span>`
+    : '';
 
-  // 分段解码：把 ID 按语义切段着色，并给出带色点的图例
-  const segs = [
-    {cls:'seg-prefix', t:p.prefix, label:'前缀',   val:p.prefix},
-    {cls:'seg-action', t:p.action, label:'动作',   val:p.actionName},
-    {cls:'seg-part',   t:p.part,   label:'部位',   val:p.partName},
-    {cls:'seg-suit',   t:p.suit,   label:'套装',   val:p.suit},
-    {cls:'seg-serial', t:p.serial, label:'编号',   val:p.serial},
+  // #1 逐位对齐解码：每列独立卡片；上=数字段 / 中=位名 / 下=解码值（main+sub 分行，避免连字漂浮）
+  const segDef = [
+    {cls:'seg-prefix', t:p.prefix, label:'前缀',   main:p.prefix, sub:''},
+    {cls:'seg-action', t:p.action, label:'动作',   main:p.action, sub:p.actionName},
+    {cls:'seg-part',   t:p.part,   label:'部位',   main:p.part,   sub:p.partName},
+    {cls:'seg-suit',   t:p.suit,   label:'套装',   main:p.suit,   sub:''},
+    {cls:'seg-serial', t:p.serial, label:'编号',   main:p.serial, sub:''},
   ];
   if(p.scheme==='基础外观'){
-    segs.push({cls:'seg-appear', t:p.appearanceId, label:'外观id', val:p.appearanceId + (p.profession?(' · '+p.profession):'')});
+    segDef.push({cls:'seg-appear', t:p.appearanceId, label:'外观id', main:p.appearanceId, sub:p.profession||''});
   }
-  const leadColor = {prefix:'var(--text-dim)', action:'var(--info)', part:'var(--accent)', suit:'var(--ok)', serial:'var(--text-dim)', appear:'var(--accent2)'};
-  const segHtml = segs.map(s=>`<span class="seg ${s.cls}" title="${escapeHtml(s.label)}">${escapeHtml(s.t)}</span>`).join('');
-  let legendHtml = segs.map(s=>`<span class="lg"><span class="lead" style="background:${leadColor[s.cls.replace('seg-','')]}"></span>${escapeHtml(s.label)}<b>${escapeHtml(s.val)}</b></span>`).join('');
-  if(p.scheme!=='基础外观'){
-    legendHtml += `<span class="lg"><span class="lead" style="background:var(--accent2)"></span>性别<b>${escapeHtml(p.gender)}</b></span>`;
-  }
+  const cols = segDef.map(s=>{
+    const sub = s.sub ? `<div class="dval-extra">${escapeHtml(s.sub)}</div>` : '';
+    return `<div class="dcol">
+      <div class="seg ${s.cls}">${escapeHtml(s.t)}</div>
+      <div class="dlabel">${escapeHtml(s.label)}</div>
+      <div class="dval"><div class="dval-code">${escapeHtml(s.main)}</div>${sub}</div>
+    </div>`;
+  }).join('');
   parseEl.innerHTML =
-    `<div class="decode-head">${schemeBadge}</div>` +
-    `<div class="decode-id">${segHtml}</div>` +
-    `<div class="decode-legend">${legendHtml}</div>`;
+    `<div class="decode-head">${schemeBadge}${genderBadge}</div>` +
+    `<div class="decode-grid">${cols}</div>`;
 
-  // 六部位候选卡片
+  // 六部位候选卡片（#2 部件位高亮；#3 中文名可直接编辑）
   const recs = records();
+  const partIdx = 4; // 部件位：501·动作·部位·套装·编号[·外观id] 中第5位
   for(const dp of DERIVE_PARTS){
     const candId = derive(dp.code, input);
     const rec = findRecord(recs, candId);
@@ -537,26 +586,55 @@ function renderMain(){
           ? '<span class="dc-status ok" title="已提交">✓</span>'
           : '<span class="dc-status maybe" title="待确认">❓</span>')
       : '<span class="dc-status" style="color:var(--text-faint)">·</span>';
+    // #2 候选 ID 的部件位单独彩色高亮，其余位保持金色
+    const idHtml = [...candId].map((ch,i)=> i===partIdx ? `<span class="dc-hl">${escapeHtml(ch)}</span>` : escapeHtml(ch)).join('');
+    // #3 中文名可编辑：已有记录改名；待补输入后按公式自动新建
     const nameHtml = rec
-      ? `<span class="dc-name">${escapeHtml(rec.name)}</span>`
-      : `<span class="dc-name miss">待补</span>`;
+      ? `<span class="dc-name editable" contenteditable="true" spellcheck="false" data-eid="${escapeHtml(candId)}" title="点击直接编辑中文名，回车或点外保存">${escapeHtml(rec.name)}</span>`
+      : `<span class="dc-name miss editable" contenteditable="true" spellcheck="false" data-eid="${escapeHtml(candId)}" title="待补：点击输入中文名，回车或点外自动新建"></span>`;
     const curHtml = isCurrent ? '<span class="cur">当前</span>' : '';
 
     gridEl.insertAdjacentHTML('beforeend',
       `<div class="${cls.join(' ')}">
         <span class="dc-part">${escapeHtml(dp.name)}${curHtml}</span>
-        <span class="dc-id" data-copy="${escapeHtml(candId)}">${escapeHtml(candId)}</span>
+        <span class="dc-id" data-copy="${escapeHtml(candId)}">${idHtml}</span>
         ${nameHtml}
         ${statusHtml}
       </div>`);
   }
 }
 
+/* #3 中文名行内编辑提交：已有记录改名；待补则按 parseID 公式新建记录 */
+function commitNameEdit(el){
+  const id = el.getAttribute('data-eid');
+  const val = el.innerText.replace(/\s+/g,' ').trim();
+  const rec = findRecord(records(), id);
+  if(rec){
+    if(rec.name !== val){
+      rec.name = val; saveData();
+      renderTable(); renderRel(); renderMain();
+      toast('已更新名称：'+id);
+    }
+    return;
+  }
+  if(!val) return; // 待补且为空，不处理
+  const p = parseID(id);
+  if(!p) return;
+  records().push({
+    id, name: val,
+    part: p.partName, action: p.actionName, suit: p.suit, serial: p.serial,
+    appearanceId: p.appearanceId || '', profession: p.profession || '', gender: p.gender || '',
+    type: p.scheme, submitted:'❓', note:''
+  });
+  saveData(); renderTable(); renderRel(); renderMain();
+  toast('已新增：'+id);
+}
+
 /* ===================== 渲染：区域2 ===================== */
 function renderRel(){
-  const input = document.getElementById('relInput').value.trim();
+  const input = document.getElementById('mainInput').value.trim();
   const el = document.getElementById('relResult');
-  if(!input){ el.innerHTML = '<div class="empty-state">输入任意 ID 后显示同套关联记录</div>'; return; }
+  if(!input){ el.innerHTML = '<div class="empty-state">输入主 ID 后自动显示同套关联记录 · 试试 <a href="javascript:void(0)" class="sample-link" data-fill="501121001">501121001</a></div>'; return; }
   const p = parseID(input);
   if(!p){ el.innerHTML = '<div class="empty-state" style="color:var(--danger)">无法解析该 ID（需 8 或 9 位数字）</div>'; return; }
 
@@ -572,7 +650,7 @@ function renderRel(){
     const r = item.record; const rp = item.parsed;
     const statCls = r.submitted==='✓' ? 'stat-ok' : 'stat-maybe';
     return `<tr>
-      <td class="id-cell" data-copy="${escapeHtml(r.id)}">${escapeHtml(r.id)}</td>
+      <td class="id-cell" data-fill="${escapeHtml(r.id)}" title="点击回填主ID反查">${escapeHtml(r.id)}</td>
       <td>${escapeHtml(r.name)}</td>
       <td>${escapeHtml(rp.partName)}</td>
       <td>${escapeHtml(rp.actionName)}</td>
@@ -602,7 +680,7 @@ function renderTable(){
       const role = rp && rp.scheme==='基础外观' ? (r.profession||rp.profession||'') : (r.gender||'');
       const statCls = r.submitted==='✓' ? 'stat-ok' : 'stat-maybe';
       return `<tr>
-        <td class="id-cell" data-copy="${escapeHtml(r.id)}">${escapeHtml(r.id)}</td>
+        <td class="id-cell" data-fill="${escapeHtml(r.id)}" title="点击回填主ID反查">${escapeHtml(r.id)}</td>
         <td>${escapeHtml(r.name)}</td>
         <td>${escapeHtml(r.part||'')}</td>
         <td>${escapeHtml(r.action||'')}</td>
@@ -625,11 +703,18 @@ function renderTable(){
   const n9 = recs.filter(r=>String(r.id).length===9).length;
   const n8 = recs.filter(r=>String(r.id).length===8).length;
   const ok = recs.filter(r=>r.submitted==='✓').length;
+  const total = recs.length || 1;
+  const pct = Math.round(ok / total * 100);
   chips.innerHTML = `
     <span class="chip">基础外观(9位) <b>${n9}</b></span>
     <span class="chip">时装(8位) <b>${n8}</b></span>
     <span class="chip">已提交✓ <b>${ok}</b></span>
     <span class="chip">待确认❓ <b>${recs.length-ok}</b></span>`;
+  const pw = document.getElementById('progressWrap');
+  if(pw){
+    pw.querySelector('.progress-meta b').textContent = `${ok}/${recs.length}（${pct}%）`;
+    pw.querySelector('.progress-bar').style.width = pct + '%';
+  }
 }
 
 /* ===================== 模态框（新增/编辑） ===================== */
@@ -688,7 +773,23 @@ function autoParseForm(){
 
 function saveModal(){
   const id = document.getElementById('f_id').value.trim();
-  if(!parseID(id)){ toast('ID 无效：需 8 或 9 位数字'); return; }
+  const pid = parseID(id);
+  if(!pid){ toast('ID 无效：需 8 或 9 位数字'); return; }
+  // #8 校验 ID 与表单字段一致性，冲突时预警（不阻止保存）
+  const conflicts = [];
+  const partName = document.getElementById('f_part').value;
+  const actionName = document.getElementById('f_action').value;
+  const suit = document.getElementById('f_suit').value.trim();
+  const serial = document.getElementById('f_serial').value.trim();
+  const appearanceId = document.getElementById('f_appearanceId').value.trim();
+  const gender = document.getElementById('f_gender').value;
+  if(pid.partName !== partName) conflicts.push(`部位(${pid.partName}≠${partName})`);
+  if(pid.actionName !== actionName) conflicts.push(`动作(${pid.actionName}≠${actionName})`);
+  if(pid.suit !== suit) conflicts.push(`套装(${pid.suit}≠${suit})`);
+  if(pid.serial !== serial) conflicts.push(`编号(${pid.serial}≠${serial})`);
+  if(pid.scheme==='基础外观' && pid.appearanceId !== appearanceId) conflicts.push(`外观id(${pid.appearanceId}≠${appearanceId})`);
+  if(pid.scheme==='时装' && gender && pid.gender !== gender) conflicts.push(`性别(${pid.gender}≠${gender})`);
+  if(conflicts.length){ toast('⚠ ID 与字段不一致：'+conflicts.join(' ')); }
   const rec = {
     id,
     name: document.getElementById('f_name').value.trim(),
@@ -714,9 +815,9 @@ function saveModal(){
   saveData();
   closeModal();
   renderTable();
-  // 若反查/关联输入框内含该 id，刷新视图
+  // 数据已变更，刷新反查与关联视图
   if(document.getElementById('mainInput').value.trim()===id) renderMain();
-  if(document.getElementById('relInput').value.trim()===id) renderRel();
+  renderRel();
 }
 
 function deleteRecord(id){
@@ -728,14 +829,17 @@ function deleteRecord(id){
 }
 
 /* ===================== 导入/导出 ===================== */
+function pad2(n){ return String(n).padStart(2,'0'); }
 function exportData(){
+  const d = new Date();
+  const ts = `${d.getFullYear()}${pad2(d.getMonth()+1)}${pad2(d.getDate())}_${pad2(d.getHours())}${pad2(d.getMinutes())}`;
   const blob = new Blob([JSON.stringify(DATA, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'data.json';
+  a.href = url; a.download = `data_${ts}.json`;
   document.body.appendChild(a); a.click();
   document.body.removeChild(a); URL.revokeObjectURL(url);
-  toast('已导出 data.json');
+  toast('已导出 data_'+ts+'.json');
 }
 function importData(file){
   const reader = new FileReader();
@@ -756,11 +860,8 @@ function importData(file){
 
 /* ===================== 事件绑定 ===================== */
 function bindEvents(){
-  document.getElementById('btnQuery').addEventListener('click', renderMain);
-  document.getElementById('mainInput').addEventListener('keydown', e=>{ if(e.key==='Enter') renderMain(); });
-
-  document.getElementById('btnRelQuery').addEventListener('click', renderRel);
-  document.getElementById('relInput').addEventListener('keydown', e=>{ if(e.key==='Enter') renderRel(); });
+  document.getElementById('btnQuery').addEventListener('click', ()=>{ renderMain(); renderRel(); });
+  document.getElementById('mainInput').addEventListener('keydown', e=>{ if(e.key==='Enter'){ renderMain(); renderRel(); } });
 
   document.getElementById('searchInput').addEventListener('input', renderTable);
 
@@ -779,14 +880,39 @@ function bindEvents(){
     if(dl) deleteRecord(dl);
   });
 
-  // 点击 ID 复制（事件委托，覆盖三区域）
+  // 点击 ID：候选卡复制 / 表格与关联表回填主ID反查
   document.body.addEventListener('click', e=>{
     const t = e.target.closest('[data-copy]');
-    if(t){ copyText(t.getAttribute('data-copy')); }
+    if(t){ copyText(t.getAttribute('data-copy')); return; }
+    const f = e.target.closest('[data-fill]');
+    if(f){
+      const id = f.getAttribute('data-fill');
+      const inp = document.getElementById('mainInput');
+      inp.value = id; renderMain(); renderRel();
+      inp.focus();
+      toast('已填入主ID反查：'+id);
+    }
+  });
+
+  // #3 候选卡中文名行内编辑：失焦(capture)或回车保存
+  document.addEventListener('blur', e=>{
+    const el = e.target;
+    if(el && el.hasAttribute && el.hasAttribute('data-eid')) commitNameEdit(el);
+  }, true);
+  document.addEventListener('keydown', e=>{
+    if(e.key==='Enter' && e.target && e.target.hasAttribute && e.target.hasAttribute('data-eid')){
+      e.preventDefault(); e.target.blur();
+    }
   });
 
   document.getElementById('btnExport').addEventListener('click', exportData);
   document.getElementById('btnTheme').addEventListener('click', toggleTheme);
+  const abEl = document.getElementById('autoBackup');
+  if(abEl) abEl.addEventListener('change', e=>{
+    autoBackup = e.target.checked;
+    try{ localStorage.setItem('mmy-autobackup', autoBackup?'1':'0'); }catch(err){}
+    toast(autoBackup?'已开启自动备份（每次改动下载备份）':'已关闭自动备份');
+  });
   document.getElementById('btnImport').addEventListener('click', ()=>document.getElementById('fileInput').click());
   document.getElementById('fileInput').addEventListener('change', e=>{
     if(e.target.files[0]) importData(e.target.files[0]);
@@ -822,6 +948,10 @@ function init(){
   const m = DATA.meta || {};
   document.getElementById('metaTag').textContent =
     (m.version?('v'+m.version+' · '):'') + records().length+' 条';
+  // 恢复自动备份偏好
+  try{ autoBackup = localStorage.getItem('mmy-autobackup')==='1'; }catch(e){}
+  const ab = document.getElementById('autoBackup');
+  if(ab) ab.checked = autoBackup;
   bindEvents();
   // 恢复主题偏好
   let savedTheme = 'dark';
@@ -832,6 +962,11 @@ function init(){
   // 预填主 ID 反查示例，首屏即可用
   document.getElementById('mainInput').value = '501121001';
   renderMain();
+  renderRel();
+  // 首次无本地数据提示
+  if(!loadedFromStorage){
+    toast('未检测到本地数据，已载入示例；可「导入 JSON」恢复备份');
+  }
 }
 init();
 </script>
