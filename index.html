@@ -105,8 +105,17 @@
   .parse-box .empty a.sample-link:hover{filter:brightness(1.2)}
   .empty-state a.sample-link{color:var(--accent);text-decoration:underline;cursor:pointer;font-weight:600}
   .decode-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
-  .decode-id{display:flex;align-items:stretch;gap:4px;flex-wrap:wrap;
-    font-family:ui-monospace,"Cascadia Code",Consolas,monospace}
+  /* #1 逐位对齐解码：上=数字段 / 中=位名 / 下=解码值（按策划公式对应） */
+  .decode-grid{
+    display:grid;grid-auto-flow:column;grid-auto-columns:minmax(40px,auto);
+    gap:8px;justify-content:start;align-items:start;
+    font-family:ui-monospace,"Cascadia Code",Consolas,monospace;
+    padding-bottom:8px;border-bottom:1px dashed var(--border);
+  }
+  .dcol{display:flex;flex-direction:column;gap:4px;align-items:center;min-width:0}
+  .dcol .seg{width:100%}
+  .dlabel{font-size:11px;color:var(--text-faint);text-align:center;white-space:nowrap;letter-spacing:.5px}
+  .dval{font-size:12px;color:var(--text);text-align:center;font-weight:700;white-space:nowrap;line-height:1.25}
   .seg{
     display:inline-flex;align-items:center;justify-content:center;
     min-width:26px;padding:8px 9px;border-radius:8px;font-size:18px;font-weight:800;line-height:1;
@@ -117,12 +126,6 @@
   .seg-suit{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}
   .seg-serial{background:var(--bg);color:var(--text-dim);border:1px solid var(--border)}
   .seg-appear{background:color-mix(in srgb,var(--vio) 16%,transparent);color:var(--vio)}
-  .decode-legend{display:flex;flex-wrap:wrap;gap:6px 8px;margin-top:12px;
-    border-top:1px dashed var(--border);padding-top:12px}
-  .lg{font-size:12px;color:var(--text-dim);background:var(--card);border:1px solid var(--border);
-    border-radius:7px;padding:3px 9px;display:inline-flex;align-items:center}
-  .lg b{color:var(--text);font-weight:700;margin-left:5px}
-  .lg .lead{width:3px;height:13px;border-radius:2px;display:inline-block;margin-right:6px}
   .badge{display:inline-block;padding:3px 11px;border-radius:20px;font-size:12px;font-weight:700}
   .badge.scheme9{background:var(--accent-soft);color:var(--accent)}
   .badge.scheme8{background:var(--info-soft);color:var(--info)}
@@ -143,9 +146,16 @@
     flex:none;font-size:15px;font-weight:800;color:var(--accent);
     font-family:ui-monospace,"Cascadia Code",Consolas,monospace;cursor:pointer;
   }
+  .dc-hl{color:var(--info);font-weight:900}   /* #2 部件位高亮 */
   .dc-name{flex:1;min-width:0;font-size:13px;color:var(--text);
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .dc-name.miss{color:var(--text-faint);font-style:italic}
+  /* #3 中文名行内编辑 */
+  .dc-name.editable{cursor:text;border-radius:5px;padding:1px 5px;outline:none;transition:.12s}
+  .dc-name.editable:hover{background:var(--bg)}
+  .dc-name.editable:focus{background:var(--bg);box-shadow:0 0 0 1px var(--accent);color:var(--text)}
+  .dc-name.miss.editable:empty::before{content:'待补';color:var(--text-faint);font-style:italic}
+  .dc-name.miss.editable:not(:empty){color:var(--text);font-style:normal}
   .dc-status{flex:none;font-size:14px}
   .dc-status.ok{color:var(--ok)} .dc-status.maybe{color:var(--warn)}
 
@@ -526,9 +536,13 @@ function renderMain(){
   const schemeBadge = p.scheme==='基础外观'
     ? '<span class="badge scheme9">基础外观 · 9 位制</span>'
     : '<span class="badge scheme8">时装 · 8 位制</span>';
+  // 时装制式附带性别提示（性别不占 ID 位）
+  const genderBadge = p.scheme==='时装'
+    ? `<span class="badge" style="background:color-mix(in srgb,var(--accent2) 16%,transparent);color:var(--accent2)">性别：${escapeHtml(p.gender)}</span>`
+    : '';
 
-  // 分段解码：把 ID 按语义切段着色，并给出带色点的图例
-  const segs = [
+  // #1 逐位对齐解码：上=数字段 / 中=位名 / 下=解码值（按策划公式 前缀·动作·部位·套装·编号·外观id 对齐）
+  const segDef = [
     {cls:'seg-prefix', t:p.prefix, label:'前缀',   val:p.prefix},
     {cls:'seg-action', t:p.action, label:'动作',   val:p.actionName},
     {cls:'seg-part',   t:p.part,   label:'部位',   val:p.partName},
@@ -536,21 +550,21 @@ function renderMain(){
     {cls:'seg-serial', t:p.serial, label:'编号',   val:p.serial},
   ];
   if(p.scheme==='基础外观'){
-    segs.push({cls:'seg-appear', t:p.appearanceId, label:'外观id', val:p.appearanceId + (p.profession?(' · '+p.profession):'')});
+    segDef.push({cls:'seg-appear', t:p.appearanceId, label:'外观id', val:p.appearanceId + (p.profession?(' · '+p.profession):'')});
   }
-  const leadColor = {prefix:'var(--text-dim)', action:'var(--info)', part:'var(--accent)', suit:'var(--ok)', serial:'var(--text-dim)', appear:'var(--vio)'};
-  const segHtml = segs.map(s=>`<span class="seg ${s.cls}" title="${escapeHtml(s.label)}">${escapeHtml(s.t)}</span>`).join('');
-  let legendHtml = segs.map(s=>`<span class="lg"><span class="lead" style="background:${leadColor[s.cls.replace('seg-','')]}"></span>${escapeHtml(s.label)}<b>${escapeHtml(s.val)}</b></span>`).join('');
-  if(p.scheme!=='基础外观'){
-    legendHtml += `<span class="lg"><span class="lead" style="background:var(--accent2)"></span>性别<b>${escapeHtml(p.gender)}</b></span>`;
-  }
+  const cols = segDef.map(s=>
+    `<div class="dcol">
+      <div class="seg ${s.cls}">${escapeHtml(s.t)}</div>
+      <div class="dlabel">${escapeHtml(s.label)}</div>
+      <div class="dval">${escapeHtml(s.val)}</div>
+    </div>`).join('');
   parseEl.innerHTML =
-    `<div class="decode-head">${schemeBadge}</div>` +
-    `<div class="decode-id">${segHtml}</div>` +
-    `<div class="decode-legend">${legendHtml}</div>`;
+    `<div class="decode-head">${schemeBadge}${genderBadge}</div>` +
+    `<div class="decode-grid">${cols}</div>`;
 
-  // 六部位候选卡片
+  // 六部位候选卡片（#2 部件位高亮；#3 中文名可直接编辑）
   const recs = records();
+  const partIdx = 4; // 部件位：501·动作·部位·套装·编号[·外观id] 中第5位
   for(const dp of DERIVE_PARTS){
     const candId = derive(dp.code, input);
     const rec = findRecord(recs, candId);
@@ -564,19 +578,48 @@ function renderMain(){
           ? '<span class="dc-status ok" title="已提交">✓</span>'
           : '<span class="dc-status maybe" title="待确认">❓</span>')
       : '<span class="dc-status" style="color:var(--text-faint)">·</span>';
+    // #2 候选 ID 的部件位单独彩色高亮，其余位保持金色
+    const idHtml = [...candId].map((ch,i)=> i===partIdx ? `<span class="dc-hl">${escapeHtml(ch)}</span>` : escapeHtml(ch)).join('');
+    // #3 中文名可编辑：已有记录改名；待补输入后按公式自动新建
     const nameHtml = rec
-      ? `<span class="dc-name">${escapeHtml(rec.name)}</span>`
-      : `<span class="dc-name miss">待补</span>`;
+      ? `<span class="dc-name editable" contenteditable="true" spellcheck="false" data-eid="${escapeHtml(candId)}" title="点击直接编辑中文名，回车或点外保存">${escapeHtml(rec.name)}</span>`
+      : `<span class="dc-name miss editable" contenteditable="true" spellcheck="false" data-eid="${escapeHtml(candId)}" title="待补：点击输入中文名，回车或点外自动新建"></span>`;
     const curHtml = isCurrent ? '<span class="cur">当前</span>' : '';
 
     gridEl.insertAdjacentHTML('beforeend',
       `<div class="${cls.join(' ')}">
         <span class="dc-part">${escapeHtml(dp.name)}${curHtml}</span>
-        <span class="dc-id" data-copy="${escapeHtml(candId)}">${escapeHtml(candId)}</span>
+        <span class="dc-id" data-copy="${escapeHtml(candId)}">${idHtml}</span>
         ${nameHtml}
         ${statusHtml}
       </div>`);
   }
+}
+
+/* #3 中文名行内编辑提交：已有记录改名；待补则按 parseID 公式新建记录 */
+function commitNameEdit(el){
+  const id = el.getAttribute('data-eid');
+  const val = el.innerText.replace(/\s+/g,' ').trim();
+  const rec = findRecord(records(), id);
+  if(rec){
+    if(rec.name !== val){
+      rec.name = val; saveData();
+      renderTable(); renderRel(); renderMain();
+      toast('已更新名称：'+id);
+    }
+    return;
+  }
+  if(!val) return; // 待补且为空，不处理
+  const p = parseID(id);
+  if(!p) return;
+  records().push({
+    id, name: val,
+    part: p.partName, action: p.actionName, suit: p.suit, serial: p.serial,
+    appearanceId: p.appearanceId || '', profession: p.profession || '', gender: p.gender || '',
+    type: p.scheme, submitted:'❓', note:''
+  });
+  saveData(); renderTable(); renderRel(); renderMain();
+  toast('已新增：'+id);
 }
 
 /* ===================== 渲染：区域2 ===================== */
@@ -840,6 +883,17 @@ function bindEvents(){
       inp.value = id; renderMain(); renderRel();
       inp.focus();
       toast('已填入主ID反查：'+id);
+    }
+  });
+
+  // #3 候选卡中文名行内编辑：失焦(capture)或回车保存
+  document.addEventListener('blur', e=>{
+    const el = e.target;
+    if(el && el.hasAttribute && el.hasAttribute('data-eid')) commitNameEdit(el);
+  }, true);
+  document.addEventListener('keydown', e=>{
+    if(e.key==='Enter' && e.target && e.target.hasAttribute && e.target.hasAttribute('data-eid')){
+      e.preventDefault(); e.target.blur();
     }
   });
 
